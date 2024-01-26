@@ -1,0 +1,4 @@
+*.npy
+kelp_data/
+segformer*
+.ipynb_checkpoints/
