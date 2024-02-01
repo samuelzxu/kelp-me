@@ -1,5 +1,6 @@
 *.npy
 kelp_data/
-segformer*
+checkpoints/
 .ipynb_checkpoints/
 wandb*
+*__pycache__

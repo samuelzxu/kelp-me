@@ -1,0 +1,1 @@
+from .hf_segformer import SegformerForKelpSemanticSegmentation
