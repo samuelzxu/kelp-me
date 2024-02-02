@@ -7,7 +7,7 @@ from transformers import (
     SegformerDecodeHead, 
     SegformerPreTrainedModel,
 )
-from torchgeometry.losses import dice_loss
+from .losses import dice_loss
 from typing import Optional, Union, Tuple
 import torch
 
@@ -55,14 +55,14 @@ class SegformerForKelpSemanticSegmentation(SegformerPreTrainedModel):
             #     loss = loss_fct(upsampled_logits, labels)
             # elif self.config.num_labels == 1:
             # if self.config.num_labels == 1:
-                # valid_mask = ((labels >= 0) & (labels != self.config.semantic_loss_ignore_index)).float()
+            # valid_mask = ((labels >= 0) & (labels != self.config.semantic_loss_ignore_index)).float()
                 # ratio = (labels == 0).sum() /  torch.max(torch.tensor([(labels == 1).sum(),1]))
                 # loss_fct = BCEWithLogitsLoss(reduction="mean", pos_weight=torch.ones_like(labels).to(device='cuda')*ratio)
                 # loss = loss_fct(upsampled_logits.squeeze(1), labels.float())
 
                 # loss = (loss * valid_mask).mean()
                 # loss = sigmoid_focal_loss(upsampled_logits.squeeze(1), labels.float(), gamma=2, reduction='mean')
-            loss = dice_loss(upsampled_logits.squeeze(1), labels)
+            loss = dice_loss(upsampled_logits, labels)
 
         if not return_dict:
             if output_hidden_states:
