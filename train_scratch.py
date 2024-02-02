@@ -5,6 +5,7 @@ from datasets import load_dataset
 from torchvision.transforms import RandomAffine, InterpolationMode, RandomHorizontalFlip, RandomVerticalFlip, Compose, ColorJitter, GaussianBlur
 from transformers import (
     SegformerImageProcessor,
+    SegformerForSemanticSegmentation,
     SegformerConfig,
     Trainer,
     TrainingArguments
@@ -41,7 +42,7 @@ config_b1 = {
       320,
       512
     ],
-    "image_size": 224,
+    "image_size": 350,
     "initializer_range": 0.02,
     "layer_norm_eps": 1e-06,
     "mlp_ratios": [
@@ -57,7 +58,6 @@ config_b1 = {
       5,
       8
     ],
-    "num_channels": 3,
     "num_encoder_blocks": 4,
     "patch_sizes": [
       7,
@@ -92,12 +92,15 @@ def main(
         hf_username: str = 'samitizerxu',
         shuffle_seed: int = 1,
         split_seed: int = 1,
-        test_prop: float = 0.3,
+        test_prop: float = 0.2,
         batch_size: int = 8,
         epochs: int = 40,
         lr: float = 0.00002,
 ):
     wandb.login()
+    wandb.init()
+    wandb.run.name = hub_model_name
+    wandb.run.save()
 
     os.environ["WANDB_PROJECT"]=wdb_proj
     
@@ -153,23 +156,15 @@ def main(
     # Set transforms
     train_ds.set_transform(train_transforms)
     test_ds.set_transform(val_transforms)
-
-    id2label = {
-        1: 'kelp',
-    }
-
-    label2id = {
-        'kelp': 1,
-    }
     
     config = SegformerConfig(
         semantic_loss_ignore_index=255,
-        num_channels=5,
+        num_channels=3,
         **config_b1
     )
 
     model = SegformerForKelpSemanticSegmentation(
-        config
+        config,
     )
 
     training_args = TrainingArguments(
@@ -206,7 +201,7 @@ def main(
                 mode="bilinear",
                 align_corners=False,
             ).argmax(dim=1)
-            pred_labels = torch.nn.functional.sigmoid(logits_tensor.detach().cpu()).numpy().astype(np.uint8)
+            pred_labels = np.round(torch.nn.functional.sigmoid(logits_tensor.detach().cpu()).numpy())
             print("Pred labels 1 sum: ",(pred_labels==1).sum())
             intsc_sum = (pred_labels.astype(np.uint8) & labels.astype(np.uint8)).sum()
             union_sum = (pred_labels.astype(np.uint8) | labels.astype(np.uint8)).sum()
@@ -215,7 +210,6 @@ def main(
             }
 
             return metrics
-    
 
     trainer = Trainer(
         model=model,
