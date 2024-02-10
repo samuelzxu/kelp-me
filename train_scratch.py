@@ -76,8 +76,6 @@ def main(
             RandomAffine(degrees=90,translate=(0.3,0.3),scale=(0.7,1.3),interpolation=InterpolationMode.BILINEAR ),
             RandomHorizontalFlip(p=0.5),
             RandomVerticalFlip(p=0.5),
-            GaussianBlur(kernel_size=(5,15), sigma=(0.1, 5)),
-            ColorJitter(brightness=(0.5,1.5), contrast=(0.5,1.5))
         ])
         labels = [transform_fn(x) for x in example_batch['label']]
         inputs = processor(images, labels)
